@@ -7,7 +7,7 @@ import requests
 import json
 
 # Google Books API 설정
-GOOGLE_BOOKS_API_KEY = "AIzaSyAE0CdyEN0O-KUCzeRJnaRq-07l_x8ctJ8"
+GOOGLE_BOOKS_API_KEY = st.secrets["GOOGLE_BOOKS_API_KEY"]
 GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/volumes"
 
 def fetch_books_data(query, max_results=5):
