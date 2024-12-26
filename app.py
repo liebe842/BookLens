@@ -127,7 +127,7 @@ def get_user_preferences():
     }
 
 def main():
-    st.title("📚 개인화 도서 추천 시스템")
+    st.title("📚 개인화 도서 추천 시스템1")
     
     # 사용자 선호도 입력 받기
     user_preferences = get_user_preferences()  # 이전 코드와 동일
