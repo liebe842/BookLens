@@ -126,8 +126,20 @@ def get_user_preferences():
         "topics": preferred_topics
     }
 
+def search_books(query):
+    API_KEY = "YOUR_API_KEY"  # Google Cloud Console에서 발급받은 API 키
+    url = f"https://www.googleapis.com/books/v1/volumes?q={query}&key={API_KEY}"
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # HTTP 오류 체크
+        return response.json()
+    except requests.RequestException as e:
+        print(f"API 요청 중 오류 발생: {e}")
+        return None
+
 def main():
-    st.title("📚 개인화 도서 추천 시스템1")
+    st.title("📚 개인화 도서 추천 시스템")
     
     # 사용자 선호도 입력 받기
     user_preferences = get_user_preferences()  # 이전 코드와 동일
