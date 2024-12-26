@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
 import json
+from urllib.parse import quote
 
 # Google Books API 설정
 GOOGLE_BOOKS_API_KEY = st.secrets["GOOGLE_BOOKS_API_KEY"]
@@ -12,11 +13,14 @@ GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/volumes"
 
 def fetch_books_data(query, max_results=5):
     """Google Books API를 통해 도서 정보를 가져오는 함수"""
+    # 검색어 URL 인코딩
+    encoded_query = quote(query)
+    
     params = {
-        'q': query,
+        'q': encoded_query,
         'key': GOOGLE_BOOKS_API_KEY,
         'maxResults': max_results,
-        'langRestrict': 'ko'  # 한국어 도서로 제한
+        'langRestrict': 'ko'
     }
     
     try:
@@ -44,19 +48,23 @@ def process_book_data(book_item):
 
 def get_book_recommendations(user_preferences):
     """사용자 선호도를 기반으로 책을 추천하는 함수"""
-    # 장르와 주제를 조합하여 검색어 생성
-    search_terms = user_preferences["genre"] + user_preferences["topics"]
+    # 검색어 생성 방식 수정
+    search_terms = []
+    
+    if user_preferences["genre"]:
+        search_terms.extend(user_preferences["genre"])
+    if user_preferences["topics"]:
+        search_terms.extend(user_preferences["topics"])
     if user_preferences["author"]:
         search_terms.append(f"inauthor:{user_preferences['author']}")
     
-    # 검색어를 조합하여 API 호출
-    query = " OR ".join(search_terms)
+    # 검색어를 AND로 연결 (더 정확한 검색을 위해)
+    query = " ".join(search_terms)
     books_data = fetch_books_data(query, max_results=10)
     
     if not books_data or 'items' not in books_data:
         return []
     
-    # 검색 결과 처리
     recommendations = [process_book_data(item) for item in books_data['items']]
     return recommendations
 
