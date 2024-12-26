@@ -13,19 +13,20 @@ GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/volumes"
 
 def fetch_books_data(query, max_results=5):
     """Google Books API를 통해 도서 정보를 가져오는 함수"""
-    # 검색어 URL 인코딩
-    encoded_query = quote(query)
-    
-    params = {
-        'q': encoded_query,
-        'key': GOOGLE_BOOKS_API_KEY,
-        'maxResults': max_results,
-        'langRestrict': 'ko'
-    }
-    
     try:
+        # URL 인코딩 전에 검색어 정리
+        query = query.replace('/', ' ').strip()
+        encoded_query = quote(query)
+        
+        params = {
+            'q': encoded_query,
+            'key': GOOGLE_BOOKS_API_KEY,
+            'maxResults': max_results,
+            'langRestrict': 'ko'
+        }
+        
         response = requests.get(GOOGLE_BOOKS_BASE_URL, params=params)
-        response.raise_for_status()
+        response.raise_for_status()  # HTTP 오류 발생 시 예외 발생
         return response.json()
     except requests.RequestException as e:
         st.error(f"API 호출 중 오류가 발생했습니다: {e}")
@@ -51,15 +52,23 @@ def get_book_recommendations(user_preferences):
     # 검색어 생성 방식 수정
     search_terms = []
     
+    # 장르와 주제를 하나의 검색어로 결합
     if user_preferences["genre"]:
-        search_terms.extend(user_preferences["genre"])
+        search_terms.append(" ".join(user_preferences["genre"]))
     if user_preferences["topics"]:
-        search_terms.extend(user_preferences["topics"])
+        search_terms.append(" ".join(user_preferences["topics"]))
+    
+    # 작가는 별도로 처리
     if user_preferences["author"]:
         search_terms.append(f"inauthor:{user_preferences['author']}")
     
-    # 검색어를 AND로 연결 (더 정확한 검색을 위해)
+    # 검색어를 공백으로 구분하여 하나의 문자열로 결합
     query = " ".join(search_terms)
+    
+    # 검색어가 비어있는 경우 처리
+    if not query.strip():
+        return []
+    
     books_data = fetch_books_data(query, max_results=10)
     
     if not books_data or 'items' not in books_data:
